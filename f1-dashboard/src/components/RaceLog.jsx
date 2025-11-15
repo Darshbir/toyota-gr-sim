@@ -4,7 +4,7 @@ import { TrendingUp, Zap, Wrench, Award } from 'lucide-react';
 import { speedStreak } from '../utils/animations';
 import './RaceLog.css';
 
-const RaceLog = ({ cars = [], raceTime = 0, raceFinished = false, undercutSummary = [] }) => {
+const RaceLog = ({ cars = [], raceTime = 0, raceFinished = false, undercutSummary = [], raceEvents = [] }) => {
   const [events, setEvents] = useState([]);
   const [prevState, setPrevState] = useState({
     positions: {},
@@ -12,6 +12,7 @@ const RaceLog = ({ cars = [], raceTime = 0, raceFinished = false, undercutSummar
     pitState: {},
     pitstopCounts: {}
   });
+  const [lastProcessedEventCount, setLastProcessedEventCount] = useState(0);
   const eventRefs = useRef({});
 
   useEffect(() => {
@@ -112,6 +113,47 @@ const RaceLog = ({ cars = [], raceTime = 0, raceFinished = false, undercutSummar
     });
   }, [cars, raceTime]);
 
+  // Process error events from backend
+  useEffect(() => {
+    if (!raceEvents || raceEvents.length === 0) return;
+    
+    // Only process new events (events added since last check)
+    const newEvents = raceEvents.slice(lastProcessedEventCount);
+    
+    if (newEvents.length > 0) {
+      const formattedEvents = newEvents.map(event => ({
+        type: 'error',
+        time: event.time,
+        message: event.message,
+        car: event.driver,
+        error_type: event.error_type,
+        time_loss: event.time_loss,
+        details: `Lap ${event.lap}, -${event.time_loss.toFixed(2)}s`
+      }));
+      
+      setEvents(prev => {
+        const updated = [...prev, ...formattedEvents].slice(-50); // Keep last 50 events
+        // Animate new entries
+        setTimeout(() => {
+          formattedEvents.forEach((event, idx) => {
+            const eventIndex = updated.length - formattedEvents.length + idx;
+            const eventElement = eventRefs.current[eventIndex];
+            if (eventElement) {
+              speedStreak(eventElement, {
+                duration: 500,
+                color: getEventColor('error'),
+                intensity: 0.8
+              });
+            }
+          });
+        }, 50);
+        return updated;
+      });
+      
+      setLastProcessedEventCount(raceEvents.length);
+    }
+  }, [raceEvents, lastProcessedEventCount]);
+
   const getEventIcon = (type) => {
     switch (type) {
       case 'overtake':
@@ -120,6 +162,8 @@ const RaceLog = ({ cars = [], raceTime = 0, raceFinished = false, undercutSummar
         return <Zap size={14} />;
       case 'pitstop':
         return <Wrench size={14} />;
+      case 'error':
+        return <span style={{ fontSize: '14px' }}>⚠️</span>;
       default:
         return null;
     }
@@ -133,6 +177,8 @@ const RaceLog = ({ cars = [], raceTime = 0, raceFinished = false, undercutSummar
         return '#FFD700';
       case 'pitstop':
         return '#FFA500';
+      case 'error':
+        return '#FF4444';
       default:
         return '#B8B8B8';
     }

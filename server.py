@@ -288,6 +288,7 @@ class RaceSim:
         self.total_laps = 36
         self.race_finished = False
         self.race_started = False
+        self.race_events = []  # Track all race events for race log display
         self.init_cars(n_cars)
 
     def init_cars(self, n):
@@ -395,7 +396,7 @@ class RaceSim:
         # Higher skill drivers (0.98) have lower base probability
         # Lower skill drivers (0.68) have higher base probability
         skill_factor = (1 - car.driver_skill)  # 0.02 for Max, 0.32 for Stroll
-        base = 0.0001 + 0.0008 * skill_factor  # Reduced base probability (~50% reduction), scales with skill
+        base = 0.00005 + 0.0003 * skill_factor  # Further reduced base probability (~60% reduction from original), scales with skill
         
         # Reduce rain factor for wet/inters tyres (they provide better grip in rain)
         # Dry tyres (SOFT/MEDIUM/HARD) keep full rain impact
@@ -644,11 +645,12 @@ class RaceSim:
                         if car.v > 0.1 and distance_gap > 0:
                             time_gap = distance_gap / car.v
                             
-                            # If car behind is within 0.5-2 seconds and on a straight/low-curvature section
-                            if 0.5 <= time_gap <= 2.0 and curv < 0.001:  # Only on straights
-                                # Apply speed reduction: closer = more effect (2-5% max)
-                                # Scale from 0.98 (at 2s gap) to 0.95 (at 0.5s gap)
-                                reduction_factor = 0.98 - (0.03 * (2.0 - time_gap) / 1.5)
+                            # If car behind is within 0.5-3 seconds and on a straight/low-curvature section
+                            # Made overtaking more difficult by extending range and increasing reduction
+                            if 0.5 <= time_gap <= 3.0 and curv < 0.001:  # Only on straights
+                                # Apply speed reduction: closer = more effect (2-8% max, increased from 2-5%)
+                                # Scale from 0.98 (at 3s gap) to 0.92 (at 0.5s gap)
+                                reduction_factor = 0.98 - (0.06 * (3.0 - time_gap) / 2.5)
                                 defensive_speed_multiplier = min(defensive_speed_multiplier, reduction_factor)
             
             # Lookahead to anticipate upcoming corners
@@ -715,16 +717,55 @@ class RaceSim:
                     'undercuts': {}  # Will be populated when pitstop completes
                 })
 
-            # Driver error handling: temporary speed reduction for 2-3 seconds
+            # Driver error handling: temporary speed reduction with varying severity
             if not car.error_active and random.random() < self.error_probability(car) * self.dt:
-                # Trigger error: slow down by 10% for 2-3 seconds
-                car.error_active = True
-                car.error_timer = random.uniform(2.0, 3.0)  # Random duration between 2-3 seconds
-                car.error_speed_multiplier = 0.9  # 10% speed reduction
+                # Determine error type and severity
+                rand_val = random.random()
+                if rand_val < 0.40:  # 40% - Lockup (least severe)
+                    error_type = "lockup"
+                    error_msg = f"{car.name} locks up!"
+                    car.error_speed_multiplier = 0.85  # 15% speed reduction
+                    car.error_timer = random.uniform(1.5, 2.5)
+                    time_loss = random.uniform(0.5, 1.5)
+                elif rand_val < 0.75:  # 35% - Goes wide (moderate)
+                    error_type = "wide"
+                    error_msg = f"{car.name} goes wide!"
+                    car.error_speed_multiplier = 0.75  # 25% speed reduction
+                    car.error_timer = random.uniform(2.0, 3.5)
+                    time_loss = random.uniform(1.0, 2.5)
+                elif rand_val < 0.95:  # 20% - Gravel excursion (severe)
+                    error_type = "gravel"
+                    error_msg = f"{car.name} runs into the gravel!"
+                    car.error_speed_multiplier = 0.50  # 50% speed reduction
+                    car.error_timer = random.uniform(3.0, 5.0)
+                    time_loss = random.uniform(3.0, 6.0)
+                else:  # 5% - Spin (most severe)
+                    error_type = "spin"
+                    error_msg = f"{car.name} spins!"
+                    car.error_speed_multiplier = 0.20  # 80% speed reduction
+                    car.error_timer = random.uniform(4.0, 7.0)
+                    time_loss = random.uniform(5.0, 10.0)
                 
-                # Log error message
-                error_type = random.choice(["goes wide", "goes into gravel"])
-                print(f"{car.name} {error_type}!")
+                # Trigger error state
+                car.error_active = True
+                
+                # Add time penalty to total_time
+                car.total_time += time_loss
+                
+                # Log error to race events for race log display
+                self.race_events.append({
+                    'type': 'error',
+                    'time': round(self.time, 1),
+                    'lap': car.laps_completed,
+                    'driver': car.name,
+                    'error_type': error_type,
+                    'time_loss': round(time_loss, 2),
+                    'message': error_msg,
+                    'track_position': round(car.s, 1)
+                })
+                
+                # Console log for debugging
+                print(f"[Lap {car.laps_completed}] {error_msg} (-{time_loss:.2f}s)")
 
             # Tyre wear calculation with compound-specific rates
             base_wear_rate = 0.0005 * (1 + 0.8 * (1 - self.tyre_grip_coeff(car)))
@@ -1022,7 +1063,8 @@ class RaceSim:
             'total_laps': self.total_laps,
             'tyre_distribution': tyre_counts,
             'race_finished': self.race_finished,
-            'race_started': self.race_started
+            'race_started': self.race_started,
+            'race_events': self.race_events  # Include race events for race log display
         }
         
         # Add undercut summary at end of race
@@ -1036,6 +1078,7 @@ class RaceSim:
         self.time = 0.0
         self.race_finished = False
         self.race_started = False
+        self.race_events = []  # Clear race events
         # Reset all cars
         for car in self.cars:
             car.s = 0.0

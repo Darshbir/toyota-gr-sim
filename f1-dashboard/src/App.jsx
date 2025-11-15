@@ -280,6 +280,7 @@ function App() {
               raceTime={raceState.time || 0}
               raceFinished={raceState.race_finished || false}
               undercutSummary={raceState.undercut_summary || []}
+              raceEvents={raceState.race_events || []}
             />
           </div>
 
