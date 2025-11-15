@@ -243,6 +243,8 @@ class RaceSim:
         
         self.init_cars(n_cars)
         self.total_laps = 36
+        self.race_finished = False
+        self.race_started = False
         
         # Print physics status summary
         status = self.get_physics_status()
@@ -341,7 +343,15 @@ class RaceSim:
         prob = base * (1 + 4 * rain + 6 * wear + car.aggression)
         return min(prob, 0.5)
 
+    def start_race(self):
+        """Start the race - allows simulation to proceed"""
+        self.race_started = True
+    
     def step(self):
+        # Only advance simulation if race has started
+        if not self.race_started:
+            return
+        
         # One physics step (self.dt seconds)
         for car in self.cars:
             if car.on_pit:

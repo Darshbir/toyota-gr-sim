@@ -100,6 +100,27 @@ body {
   letter-spacing: 0.5px;
 }
 
+.race-controls-section {
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.race-in-progress-controls {
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.start-button-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 10px 0;
+}
+
 .dashboard-grid {
   display: grid;
   grid-template-columns: 2fr 1fr;

@@ -10,7 +10,8 @@ import random
 import math
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
-from typing import List, Set
+from pydantic import BaseModel
+from typing import List, Set, Optional
 from scipy.interpolate import CubicSpline
 
 # Import simulation logic from nice.py
@@ -238,6 +239,7 @@ class RaceSim:
         self.weather = weather or {'rain': 0.15, 'track_temp': 25.0, 'wind': 0.0}
         self.total_laps = 36
         self.race_finished = False
+        self.race_started = False
         self.init_cars(n_cars)
 
     def init_cars(self, n):
@@ -320,7 +322,15 @@ class RaceSim:
         # Linear increase from 0% at 0.8 to 100% at 1.0
         return max(0.0, (car.wear - 0.8) / 0.2)
 
+    def start_race(self):
+        """Start the race - allows simulation to proceed"""
+        self.race_started = True
+    
     def step(self):
+        # Only advance simulation if race has started
+        if not self.race_started:
+            return
+        
         for car in self.cars:
             if car.on_pit:
                 car.pit_counter -= self.dt
@@ -461,13 +471,15 @@ class RaceSim:
             'weather': self.weather,
             'total_laps': self.total_laps,
             'tyre_distribution': tyre_counts,
-            'race_finished': self.race_finished
+            'race_finished': self.race_finished,
+            'race_started': self.race_started
         }
     
     def reset_race(self):
         """Reset the race for a new race"""
         self.time = 0.0
         self.race_finished = False
+        self.race_started = False
         # Reset all cars
         for car in self.cars:
             car.s = 0.0
@@ -507,12 +519,13 @@ active_connections: Set[WebSocket] = set()
 sim: RaceSim = None
 track_data = None
 
-def initialize_simulation():
+def initialize_simulation(weather=None):
     """Initialize or reset the simulation"""
     global sim, track_data
     waypoints = load_gp_track_simple()
     track_data = build_spline(waypoints, n_points=2000)
-    weather = {'rain': 0.15, 'track_temp': 22.0, 'wind': 3.0}
+    if weather is None:
+        weather = {'rain': 0.15, 'track_temp': 22.0, 'wind': 3.0}
     
     if USE_ENHANCED:
         print("🚀 Initializing simulation with Enhanced Physics Engine...")
@@ -600,6 +613,55 @@ async def reset_simulation():
     """Reset the simulation"""
     initialize_simulation()
     return {"message": "Simulation reset"}
+
+class StartRaceRequest(BaseModel):
+    rain: float = 0.0
+    track_temp: float = 25.0
+    wind: float = 0.0
+
+@app.post("/api/start")
+async def start_race(request: StartRaceRequest):
+    """Start the race with specified weather conditions"""
+    global sim
+    weather = {
+        'rain': max(0.0, min(1.0, request.rain)),
+        'track_temp': max(15.0, min(50.0, request.track_temp)),
+        'wind': max(0.0, min(20.0, request.wind))
+    }
+    
+    # Initialize or update simulation with new weather
+    initialize_simulation(weather=weather)
+    
+    # Start the race
+    if sim:
+        sim.start_race()
+        return {
+            "message": "Race started",
+            "weather": weather,
+            "race_started": True
+        }
+    else:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=500, detail="Simulation not initialized")
+
+@app.get("/api/race-status")
+async def get_race_status():
+    """Get current race status"""
+    global sim
+    if sim is None:
+        return {
+            "race_started": False,
+            "race_finished": False,
+            "time": 0.0
+        }
+    
+    return {
+        "race_started": sim.race_started,
+        "race_finished": sim.race_finished,
+        "time": sim.time,
+        "weather": sim.weather,
+        "total_laps": sim.total_laps
+    }
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
