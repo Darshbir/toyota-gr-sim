@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Gauge, Zap, TrendingUp } from 'lucide-react';
+import { Gauge, Zap, TrendingUp, ChevronDown, ChevronUp } from 'lucide-react';
 import './Leaderboard.css';
 
 const Leaderboard = ({ cars = [], raceTime = 0, totalLaps = 15, onCarClick }) => {
   const [sortedCars, setSortedCars] = useState([]);
   const [prevPositions, setPrevPositions] = useState({});
+  const [showAll, setShowAll] = useState(false);
 
   useEffect(() => {
     if (!cars || cars.length === 0) {
@@ -103,7 +104,7 @@ const Leaderboard = ({ cars = [], raceTime = 0, totalLaps = 15, onCarClick }) =>
         </div>
         
         <AnimatePresence>
-          {sortedCars.map((car, index) => {
+          {(showAll ? sortedCars : sortedCars.slice(0, 5)).map((car, index) => {
             const prevPos = prevPositions[car.name] || car.position;
             const positionChange = prevPos - car.position;
             
@@ -202,6 +203,25 @@ const Leaderboard = ({ cars = [], raceTime = 0, totalLaps = 15, onCarClick }) =>
           })}
         </AnimatePresence>
       </div>
+      
+      {sortedCars.length > 5 && (
+        <button 
+          className="show-more-leaderboard"
+          onClick={() => setShowAll(!showAll)}
+        >
+          {showAll ? (
+            <>
+              <ChevronUp size={14} />
+              Show Less
+            </>
+          ) : (
+            <>
+              <ChevronDown size={14} />
+              Show All ({sortedCars.length - 5} more)
+            </>
+          )}
+        </button>
+      )}
       
       {sortedCars && sortedCars.length > 0 && sortedCars.some(car => car.on_pit) && (
         <motion.div

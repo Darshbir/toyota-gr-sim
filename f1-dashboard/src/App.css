@@ -103,15 +103,33 @@ body {
 .dashboard-grid {
   display: grid;
   grid-template-columns: 2fr 1fr;
-  grid-template-rows: auto auto auto;
   gap: 8px;
   margin-bottom: 8px;
   padding: 0;
 }
 
+.left-column {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 .track-section {
-  grid-row: 1 / 4;
   min-height: 500px;
+}
+
+.log-section {
+  min-height: 300px;
+}
+
+.pit-log-section {
+  min-height: 250px;
+}
+
+.right-column {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .side-panel {

@@ -8,16 +8,16 @@ const RaceStats = ({ cars = [], raceTime = 0 }) => {
     fastestLap: null,
     fastestLapTime: Infinity,
     totalOvertakes: 0,
-    pitStops: 0,
-    sectorTimes: {}
+    totalPitStops: 0,
+    activeDRS: 0
   });
+  const [prevPositions, setPrevPositions] = useState({});
 
   useEffect(() => {
     if (!cars || cars.length === 0) return;
     
     // Calculate fastest lap
     const fastest = cars.reduce((best, car) => {
-      // Simplified: use total_time / laps as lap time estimate
       if (car.laps > 0) {
         const lapTime = car.total_time / car.laps;
         if (lapTime < best.time) {
@@ -27,20 +27,46 @@ const RaceStats = ({ cars = [], raceTime = 0 }) => {
       return best;
     }, { car: null, time: Infinity });
 
-    if (fastest.car) {
-      setStats(prev => ({
-        ...prev,
-        fastestLap: fastest.car,
-        fastestLapTime: fastest.time
-      }));
+    // Track overtakes
+    const currentPositions = {};
+    let newOvertakes = 0;
+    
+    // Initialize positions if empty (first run)
+    const positionsToCompare = Object.keys(prevPositions).length === 0 
+      ? {} 
+      : prevPositions;
+    
+    if (Object.keys(positionsToCompare).length === 0) {
+      cars.forEach(car => {
+        currentPositions[car.name] = car.position;
+      });
+    } else {
+      cars.forEach(car => {
+        currentPositions[car.name] = car.position;
+        if (positionsToCompare[car.name] && positionsToCompare[car.name] > car.position) {
+          newOvertakes++;
+        }
+      });
     }
 
-    // Count pit stops
-    const pitCount = cars.filter(c => c.on_pit).length;
-    setStats(prev => ({ ...prev, pitStops: pitCount }));
+    // Track total pit stops
+    let totalPitStops = 0;
+    cars.forEach(car => {
+      totalPitStops += car.pitstop_count || 0;
+    });
 
-    // Estimate overtakes (simplified - would need history tracking)
-    // This is a placeholder
+    // Count active DRS
+    const activeDRS = cars.filter(c => c.drs_active).length;
+
+    setStats(prev => ({
+      fastestLap: fastest.car || prev.fastestLap,
+      fastestLapTime: fastest.car ? fastest.time : prev.fastestLapTime,
+      totalOvertakes: prev.totalOvertakes + newOvertakes,
+      totalPitStops: totalPitStops,
+      activeDRS: activeDRS
+    }));
+
+    setPrevPositions(currentPositions);
   }, [cars, raceTime]);
 
   const formatLapTime = (seconds) => {
@@ -82,7 +108,7 @@ const RaceStats = ({ cars = [], raceTime = 0 }) => {
           <div className="stat-content">
             <div className="stat-label">Overtakes</div>
             <div className="stat-value">{stats.totalOvertakes}</div>
-            <div className="stat-subvalue">This race</div>
+            <div className="stat-subvalue">Total</div>
           </div>
         </motion.div>
 
@@ -94,8 +120,8 @@ const RaceStats = ({ cars = [], raceTime = 0 }) => {
           <Clock className="stat-icon" size={24} />
           <div className="stat-content">
             <div className="stat-label">Pit Stops</div>
-            <div className="stat-value">{stats.pitStops}</div>
-            <div className="stat-subvalue">Active</div>
+            <div className="stat-value">{stats.totalPitStops}</div>
+            <div className="stat-subvalue">Total</div>
           </div>
         </motion.div>
 
@@ -107,7 +133,7 @@ const RaceStats = ({ cars = [], raceTime = 0 }) => {
           <Zap className="stat-icon" size={24} />
           <div className="stat-content">
             <div className="stat-label">DRS Zones</div>
-            <div className="stat-value">{cars.filter(c => c.drs_active).length}</div>
+            <div className="stat-value">{stats.activeDRS}</div>
             <div className="stat-subvalue">Active</div>
           </div>
         </motion.div>

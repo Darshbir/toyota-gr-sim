@@ -344,3 +344,27 @@
 .leaderboard-table::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 0, 0, 0.7);
 }
+
+.show-more-leaderboard {
+  width: 100%;
+  padding: 8px;
+  margin-top: 8px;
+  background: rgba(139, 0, 0, 0.2);
+  border: 1px solid rgba(225, 6, 0, 0.4);
+  color: #E10600;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.show-more-leaderboard:hover {
+  background: rgba(139, 0, 0, 0.3);
+  border-color: #E10600;
+  box-shadow: 0 0 10px rgba(225, 6, 0, 0.3);
+}

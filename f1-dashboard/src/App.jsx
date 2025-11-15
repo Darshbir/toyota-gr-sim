@@ -5,6 +5,8 @@ import Leaderboard from './components/Leaderboard';
 import WeatherPanel from './components/WeatherPanel';
 import TelemetryPanel from './components/TelemetryPanel';
 import RaceStats from './components/RaceStats';
+import RaceLog from './components/RaceLog';
+import PitLog from './components/PitLog';
 import CarDetails from './components/CarDetails';
 import ConnectionStatus from './components/ConnectionStatus';
 import './App.css';
@@ -51,49 +53,67 @@ function App() {
       />
 
       <div className="dashboard-grid">
-        <div className="track-section">
-          {trackData ? (
-            <TrackView 
-              trackData={trackData} 
-              cars={raceState.cars}
+        <div className="left-column">
+          <div className="track-section">
+            {trackData ? (
+              <TrackView 
+                trackData={trackData} 
+                cars={raceState.cars}
+                onCarClick={handleCarClick}
+              />
+            ) : (
+              <div className="loading-placeholder">
+                <div className="spinner"></div>
+                <p>Loading track data...</p>
+              </div>
+            )}
+          </div>
+
+          <div className="log-section">
+            <RaceLog 
+              cars={raceState.cars || []}
+              raceTime={raceState.time || 0}
+            />
+          </div>
+
+          <div className="pit-log-section">
+            <PitLog 
+              cars={raceState.cars || []}
+              raceTime={raceState.time || 0}
+            />
+          </div>
+        </div>
+
+        <div className="right-column">
+          <div className="side-panel">
+            <Leaderboard 
+              cars={raceState.cars || []}
+              raceTime={raceState.time || 0}
+              totalLaps={raceState.total_laps || 15}
               onCarClick={handleCarClick}
             />
-          ) : (
-            <div className="loading-placeholder">
-              <div className="spinner"></div>
-              <p>Loading track data...</p>
-            </div>
-          )}
-        </div>
+          </div>
 
-        <div className="side-panel">
-          <Leaderboard 
-            cars={raceState.cars || []}
-            raceTime={raceState.time || 0}
-            totalLaps={raceState.total_laps || 15}
-            onCarClick={handleCarClick}
-          />
-        </div>
+          <div className="stats-section">
+            <RaceStats 
+              cars={raceState.cars || []}
+              raceTime={raceState.time || 0}
+            />
+          </div>
 
-        <div className="weather-section">
-          <WeatherPanel 
-            weather={raceState.weather || { rain: 0, track_temp: 25, wind: 0 }}
-            tyreDistribution={raceState.tyre_distribution || {}}
-          />
-        </div>
+          <div className="weather-section">
+            <WeatherPanel 
+              weather={raceState.weather || { rain: 0, track_temp: 25, wind: 0 }}
+              tyreDistribution={raceState.tyre_distribution || {}}
+            />
+          </div>
 
-        <div className="telemetry-section">
-          <TelemetryPanel 
-            selectedCar={selectedCar}
-            cars={raceState.cars || []}
-          />
-        </div>
-
-        <div className="stats-section">
-          <RaceStats 
-            cars={raceState.cars || []}
-            raceTime={raceState.time || 0}
-          />
+          <div className="telemetry-section">
+            <TelemetryPanel 
+              selectedCar={selectedCar}
+              cars={raceState.cars || []}
+            />
+          </div>
         </div>
       </div>
 
