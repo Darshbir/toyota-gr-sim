@@ -288,6 +288,8 @@ class RaceSim:
         self.total_laps = 36
         self.race_finished = False
         self.race_started = False
+        self.paused = False  # Track pause state separately
+        self.speed_multiplier = 1.0  # Simulation speed control
         self.race_events = []  # Track all race events for race log display
         self.init_cars(n_cars)
 
@@ -532,14 +534,23 @@ class RaceSim:
     def start_race(self):
         """Start the race - allows simulation to proceed"""
         self.race_started = True
+        self.paused = False
     
     def pause_race(self):
         """Pause the race - stops simulation from proceeding"""
-        self.race_started = False
+        self.paused = True
+    
+    def resume_race(self):
+        """Resume the race after pausing"""
+        self.paused = False
+    
+    def set_speed(self, speed: float):
+        """Set simulation speed multiplier"""
+        self.speed_multiplier = max(0.1, min(10.0, speed))  # Clamp between 0.1x and 10x
     
     def step(self):
-        # Only advance simulation if race has started
-        if not self.race_started:
+        # Only advance simulation if race has started and not paused
+        if not self.race_started or self.paused:
             return
         
         # Calculate leaderboard once per step for DRS detection
@@ -1129,6 +1140,8 @@ class RaceSim:
             'tyre_distribution': tyre_counts,
             'race_finished': self.race_finished,
             'race_started': self.race_started,
+            'paused': self.paused,
+            'speed_multiplier': self.speed_multiplier,
             'race_events': self.race_events  # Include race events for race log display
         }
         
@@ -1143,6 +1156,8 @@ class RaceSim:
         self.time = 0.0
         self.race_finished = False
         self.race_started = False
+        self.paused = False
+        self.speed_multiplier = 1.0
         self.race_events = []  # Clear race events
         # Reset all cars
         for car in self.cars:
@@ -1231,8 +1246,9 @@ async def simulation_loop():
             # Don't auto-reset after race finish - keep showing final results
             # Race reset will be handled manually via reset button in frontend
             
-            # Run multiple simulation steps per broadcast
-            for _ in range(3):
+            # Run multiple simulation steps per broadcast, adjusted by speed multiplier
+            steps_per_broadcast = max(1, int(3 * sim.speed_multiplier))
+            for _ in range(steps_per_broadcast):
                 if not sim.race_finished:  # Don't step if race is finished
                     sim.step()
             
@@ -1313,7 +1329,7 @@ async def start_race(request: StartRaceRequest):
 
 @app.post("/api/pause")
 async def pause_race():
-    """Pause the race"""
+    """Pause the race (legacy endpoint)"""
     global sim
     if sim is None:
         from fastapi import HTTPException
@@ -1325,6 +1341,53 @@ async def pause_race():
         "race_started": False
     }
 
+@app.post("/api/simulation/pause")
+async def pause_simulation():
+    """Pause the simulation"""
+    global sim
+    if sim is None:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=500, detail="Simulation not initialized")
+    
+    sim.pause_race()
+    return {
+        "message": "Simulation paused",
+        "paused": sim.paused,
+        "race_started": sim.race_started
+    }
+
+@app.post("/api/simulation/resume")
+async def resume_simulation():
+    """Resume the simulation"""
+    global sim
+    if sim is None:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=500, detail="Simulation not initialized")
+    
+    sim.resume_race()
+    return {
+        "message": "Simulation resumed",
+        "paused": sim.paused,
+        "race_started": sim.race_started
+    }
+
+class SpeedRequest(BaseModel):
+    speed: float
+
+@app.post("/api/simulation/speed")
+async def set_simulation_speed(request: SpeedRequest):
+    """Set simulation speed multiplier"""
+    global sim
+    if sim is None:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=500, detail="Simulation not initialized")
+    
+    sim.set_speed(request.speed)
+    return {
+        "message": f"Simulation speed set to {sim.speed_multiplier}x",
+        "speed_multiplier": sim.speed_multiplier
+    }
+
 @app.get("/api/race-status")
 async def get_race_status():
     """Get current race status"""
@@ -1333,12 +1396,16 @@ async def get_race_status():
         return {
             "race_started": False,
             "race_finished": False,
+            "paused": False,
+            "speed_multiplier": 1.0,
             "time": 0.0
         }
     
     return {
         "race_started": sim.race_started,
         "race_finished": sim.race_finished,
+        "paused": sim.paused,
+        "speed_multiplier": sim.speed_multiplier,
         "time": sim.time,
         "weather": sim.weather,
         "total_laps": sim.total_laps

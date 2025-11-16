@@ -54,6 +54,13 @@ export const useRaceData = (wsUrl) => {
 
   const resetRace = () => {
     sendMessage({ type: 'reset' });
+    // Immediately update local state to prevent UI flicker
+    setRaceState(prevState => ({
+      ...prevState,
+      race_finished: false,
+      race_started: false,
+      time: 0
+    }));
   };
 
   return {

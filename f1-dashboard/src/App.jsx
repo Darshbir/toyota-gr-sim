@@ -13,6 +13,7 @@ import ConnectionStatus from './components/ConnectionStatus';
 import FilterBar from './components/FilterBar';
 import WeatherSelector from './components/WeatherSelector';
 import StartRaceButton from './components/StartRaceButton';
+import SimulationControls from './components/SimulationControls';
 import { pageLoadReveal, speedLines } from './utils/animations';
 import './App.css';
 
@@ -249,15 +250,11 @@ function App() {
 
       {raceStarted && !raceState.race_finished && (
         <div className="race-in-progress-controls">
-          <div className="start-button-container">
-            <StartRaceButton
-              onStart={handleStartRace}
-              disabled={!isConnected || loading}
-              raceStarted={raceStarted}
-              raceFinished={false}
-              loading={loading}
-            />
-          </div>
+          <SimulationControls 
+            wsUrl={WS_URL}
+            raceStarted={raceStarted}
+            raceFinished={raceState.race_finished || false}
+          />
         </div>
       )}
 
