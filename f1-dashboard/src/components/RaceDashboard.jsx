@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Award, TrendingUp, AlertCircle, CheckCircle, RotateCcw, ArrowLeft, Trophy } from 'lucide-react';
+import { Award, TrendingUp, AlertCircle, CheckCircle, RotateCcw, ArrowLeft, Trophy, Zap, Loader2 } from 'lucide-react';
 import './RaceDashboard.css';
 
 const RaceDashboard = ({ 
@@ -10,10 +10,43 @@ const RaceDashboard = ({
   onReset,
   onBack
 }) => {
+  const [generatingInsights, setGeneratingInsights] = useState({});
+  const [mlInsights, setMlInsights] = useState({});
+
   // Sort insights by final position (P1, P2, etc.)
   const sortedInsights = Object.values(insights).sort((a, b) => {
     return (a.final_position || 999) - (b.final_position || 999);
   });
+
+  const handleGenerateDriverInsight = async (driverName) => {
+    setGeneratingInsights(prev => ({ ...prev, [driverName]: true }));
+    
+    try {
+      const response = await fetch(
+        `http://localhost:8000/api/driver-insight/${encodeURIComponent(driverName)}`,
+        { method: 'POST' }
+      );
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.insights) {
+          setMlInsights(prev => ({
+            ...prev,
+            [driverName]: data.insights
+          }));
+        } else {
+          console.error('Failed to generate insights:', data.error);
+        }
+      } else {
+        const errorData = await response.json().catch(() => ({ detail: 'Unknown error' }));
+        console.error('Failed to generate insights:', errorData.detail || 'Unknown error');
+      }
+    } catch (error) {
+      console.error('Error generating insights:', error);
+    } finally {
+      setGeneratingInsights(prev => ({ ...prev, [driverName]: false }));
+    }
+  };
 
   const getInsightIcon = (type) => {
     switch (type) {
@@ -144,15 +177,34 @@ const RaceDashboard = ({
                     <span className="driver-position-badge">P{driver.final_position}</span>
                     <h3>{driver.name}</h3>
                   </div>
-                  <div className="driver-stats-mini">
-                    <div className="mini-stat">
-                      <span className="mini-stat-label">Time</span>
-                      <span className="mini-stat-value">{formatTime(driver.total_time)}</span>
+                  <div className="driver-header-right">
+                    <div className="driver-stats-mini">
+                      <div className="mini-stat">
+                        <span className="mini-stat-label">Time</span>
+                        <span className="mini-stat-value">{formatTime(driver.total_time)}</span>
+                      </div>
+                      <div className="mini-stat">
+                        <span className="mini-stat-label">Pitstops</span>
+                        <span className="mini-stat-value">{driver.pitstops}</span>
+                      </div>
                     </div>
-                    <div className="mini-stat">
-                      <span className="mini-stat-label">Pitstops</span>
-                      <span className="mini-stat-value">{driver.pitstops}</span>
-                    </div>
+                    <button
+                      className="generate-insight-btn"
+                      onClick={() => handleGenerateDriverInsight(driver.name)}
+                      disabled={generatingInsights[driver.name]}
+                    >
+                      {generatingInsights[driver.name] ? (
+                        <>
+                          <Loader2 className="spinning-loader" />
+                          Generating...
+                        </>
+                      ) : (
+                        <>
+                          <Zap size={14} />
+                          Generate ML Insight
+                        </>
+                      )}
+                    </button>
                   </div>
                 </div>
 
@@ -188,8 +240,117 @@ const RaceDashboard = ({
                   </div>
                 )}
 
+                {mlInsights[driver.name] && (
+                  <div className="ml-insights-section">
+                    <h4 className="insights-subheader">
+                      <Zap size={16} />
+                      ML-Generated Insights
+                    </h4>
+                    
+                    {mlInsights[driver.name].overall_assessment && (
+                      <div className="ml-overall-assessment">
+                        <div className="ml-scores">
+                          <div className="ml-score-item">
+                            <span className="ml-score-label">Performance</span>
+                            <span className="ml-score-value">
+                              {Math.round((mlInsights[driver.name].overall_assessment.performance_score || 0) * 100)}%
+                            </span>
+                          </div>
+                          <div className="ml-score-item">
+                            <span className="ml-score-label">Strategy</span>
+                            <span className="ml-score-value">
+                              {Math.round((mlInsights[driver.name].overall_assessment.strategy_score || 0) * 100)}%
+                            </span>
+                          </div>
+                          <div className="ml-score-item">
+                            <span className="ml-score-label">Execution</span>
+                            <span className="ml-score-value">
+                              {Math.round((mlInsights[driver.name].overall_assessment.execution_score || 0) * 100)}%
+                            </span>
+                          </div>
+                        </div>
+                        
+                        {mlInsights[driver.name].overall_assessment.key_strengths && 
+                         mlInsights[driver.name].overall_assessment.key_strengths.length > 0 && (
+                          <div className="ml-strengths">
+                            <strong>Strengths:</strong>
+                            <ul>
+                              {mlInsights[driver.name].overall_assessment.key_strengths.map((strength, idx) => (
+                                <li key={idx}>{strength}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        
+                        {mlInsights[driver.name].overall_assessment.key_weaknesses && 
+                         mlInsights[driver.name].overall_assessment.key_weaknesses.length > 0 && (
+                          <div className="ml-weaknesses">
+                            <strong>Weaknesses:</strong>
+                            <ul>
+                              {mlInsights[driver.name].overall_assessment.key_weaknesses.map((weakness, idx) => (
+                                <li key={idx}>{weakness}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    
+                    {mlInsights[driver.name].pit_strategy_analysis && (
+                      <div className="ml-strategy-analysis">
+                        <strong>Pit Strategy:</strong>
+                        <div className="ml-strategy-info">
+                          <span>Optimal: {mlInsights[driver.name].pit_strategy_analysis.optimal_strategy || 'N/A'}</span>
+                          <span>Efficiency: {Math.round((mlInsights[driver.name].pit_strategy_analysis.strategy_efficiency_score || 0) * 100)}%</span>
+                        </div>
+                        {mlInsights[driver.name].pit_strategy_analysis.missed_opportunities && 
+                         mlInsights[driver.name].pit_strategy_analysis.missed_opportunities.length > 0 && (
+                          <div className="ml-missed-opportunities">
+                            <strong>Missed Opportunities:</strong>
+                            <ul>
+                              {mlInsights[driver.name].pit_strategy_analysis.missed_opportunities.map((opp, idx) => (
+                                <li key={idx}>
+                                  Lap {opp.lap}: {opp.description} ({opp.potential_benefit})
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    
+                    {mlInsights[driver.name].tire_management && (
+                      <div className="ml-tire-management">
+                        <strong>Tire Management:</strong>
+                        <div className="ml-tire-info">
+                          <span>Usage Score: {Math.round((mlInsights[driver.name].tire_management.tire_usage_score || 0) * 100)}%</span>
+                          {mlInsights[driver.name].tire_management.optimal_compound_analysis && (
+                            <span>Recommended Start: {mlInsights[driver.name].tire_management.optimal_compound_analysis.recommended_starting_compound || 'N/A'}</span>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {mlInsights[driver.name].overall_assessment && 
+                     mlInsights[driver.name].overall_assessment.top_3_recommendations && 
+                     mlInsights[driver.name].overall_assessment.top_3_recommendations.length > 0 && (
+                      <div className="ml-top-recommendations">
+                        <strong>Top Recommendations:</strong>
+                        <ul>
+                          {mlInsights[driver.name].overall_assessment.top_3_recommendations.map((rec, idx) => (
+                            <li key={idx}>
+                              <strong>#{rec.priority}:</strong> {rec.recommendation} ({rec.expected_benefit})
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 {(!driver.insights || driver.insights.length === 0) && 
-                 (!driver.recommendations || driver.recommendations.length === 0) && (
+                 (!driver.recommendations || driver.recommendations.length === 0) &&
+                 (!mlInsights[driver.name]) && (
                   <div className="no-insights-message">
                     No significant insights for this driver.
                   </div>

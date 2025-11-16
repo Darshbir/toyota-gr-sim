@@ -1040,6 +1040,67 @@ class RaceSim:
         
         return insights
     
+    def _extract_driver_data_for_insights(self, car):
+        """
+        Extract and format driver data for ML insights generation.
+        
+        Args:
+            car: CarState object
+            
+        Returns:
+            Dictionary with formatted driver data
+        """
+        # Extract pitstop strategy from pitstop_history
+        pitstop_strategy = []
+        for pitstop in car.pitstop_history:
+            pitstop_strategy.append({
+                'lap': pitstop.get('lap', 0),
+                'old_tyre': pitstop.get('tyre', 'UNKNOWN'),
+                'new_tyre': pitstop.get('new_tyre', 'UNKNOWN')
+            })
+        
+        # Calculate tire usage counts
+        tire_usage = {}
+        if car.pitstop_history:
+            # Count laps on starting tire (from lap 0 to first pitstop)
+            first_pitstop_lap = car.pitstop_history[0].get('lap', 0)
+            starting_tyre = car.pitstop_history[0].get('tyre', car.tyre)
+            if starting_tyre:
+                tire_usage[starting_tyre] = tire_usage.get(starting_tyre, 0) + first_pitstop_lap
+            
+            # Count laps on tires between pitstops
+            for i in range(len(car.pitstop_history)):
+                pitstop = car.pitstop_history[i]
+                new_tyre = pitstop.get('new_tyre', car.tyre)
+                current_lap = pitstop.get('lap', 0)
+                
+                # Determine end lap (next pitstop or race end)
+                if i < len(car.pitstop_history) - 1:
+                    next_lap = car.pitstop_history[i + 1].get('lap', car.laps_completed)
+                    laps_on_this_tyre = next_lap - current_lap
+                else:
+                    # Last pitstop, count to race end
+                    laps_on_this_tyre = car.laps_completed - current_lap
+                
+                if new_tyre and laps_on_this_tyre > 0:
+                    tire_usage[new_tyre] = tire_usage.get(new_tyre, 0) + laps_on_this_tyre
+        else:
+            # No pitstops, all laps on starting tire
+            tire_usage[car.tyre] = car.laps_completed
+        
+        return {
+            'name': car.name,
+            'final_position': car.position or 0,
+            'total_time': car.total_time,
+            'laps_completed': car.laps_completed,
+            'pitstop_count': len(car.pitstop_history),
+            'pitstop_strategy': pitstop_strategy,
+            'tire_usage': tire_usage,
+            'fastest_lap': {},  # Not tracked in current simulation
+            'sector_performance': {},  # Not tracked in current simulation
+            'race_events': []  # Not tracked per driver in current simulation
+        }
+    
     def get_state(self):
         """Get complete race state for WebSocket broadcast"""
         sorted_cars = self.get_leaderboard()
@@ -1302,6 +1363,70 @@ async def get_race_insights():
         "insights": insights,
         "race_finished": True
     }
+
+@app.post("/api/driver-insight/{driver_name}")
+async def generate_driver_insight(driver_name: str):
+    """Generate ML-style insights for a single driver using Gemini"""
+    global sim
+    from fastapi import HTTPException
+    from insights_generator import InsightsGenerator
+    
+    if sim is None:
+        raise HTTPException(status_code=500, detail="Simulation not initialized")
+    
+    if not sim.race_finished:
+        raise HTTPException(status_code=400, detail="Race not finished yet")
+    
+    # Find the driver
+    driver_car = None
+    for car in sim.cars:
+        if car.name == driver_name:
+            driver_car = car
+            break
+    
+    if not driver_car:
+        raise HTTPException(status_code=404, detail=f"Driver {driver_name} not found")
+    
+    # Extract driver data
+    driver_data = sim._extract_driver_data_for_insights(driver_car)
+    
+    # Build race summary
+    sorted_cars = sim.get_leaderboard()
+    winner = sorted_cars[0].name if sorted_cars else 'Unknown'
+    
+    race_summary = {
+        'total_laps': sim.total_laps,
+        'race_duration': sim.time,
+        'weather': sim.weather,
+        'track_length': sim.track['total_length'],
+        'winner': winner,
+        'fastest_lap_overall': 'N/A'  # Not tracked
+    }
+    
+    # Create single-driver race data
+    single_driver_race_data = {
+        'race_summary': race_summary,
+        'drivers': [driver_data]
+    }
+    
+    # Generate insights
+    try:
+        generator = InsightsGenerator()
+        insights = generator.generate_single_driver_insights(single_driver_race_data, driver_name)
+        
+        return {
+            'driver_name': driver_name,
+            'insights': insights,
+            'success': True
+        }
+    except Exception as e:
+        print(f"[API] Error generating insights for {driver_name}: {str(e)}")
+        return {
+            'driver_name': driver_name,
+            'insights': {},
+            'success': False,
+            'error': str(e)
+        }
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):

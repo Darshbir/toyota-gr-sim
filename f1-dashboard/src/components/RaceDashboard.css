@@ -277,6 +277,13 @@
   border-bottom: 1px solid rgba(225, 6, 0, 0.2);
 }
 
+.driver-header-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+}
+
 .driver-card-title {
   display: flex;
   align-items: center;
@@ -408,6 +415,232 @@
   text-align: center;
   padding: 20px;
   font-size: 13px;
+}
+
+.generate-insight-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: rgba(225, 6, 0, 0.2);
+  border: 1px solid rgba(225, 6, 0, 0.5);
+  border-radius: 4px;
+  color: #E10600;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.generate-insight-btn:hover:not(:disabled) {
+  background: rgba(225, 6, 0, 0.3);
+  border-color: #E10600;
+  box-shadow: 0 0 10px rgba(225, 6, 0, 0.4);
+  transform: translateY(-1px);
+}
+
+.generate-insight-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.spinning-loader {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.ml-insights-section {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(225, 6, 0, 0.2);
+}
+
+.ml-overall-assessment {
+  margin-bottom: 16px;
+}
+
+.ml-scores {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.ml-score-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 12px;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 4px;
+  min-width: 80px;
+}
+
+.ml-score-label {
+  color: #B8B8B8;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.ml-score-value {
+  color: #E10600;
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.ml-strengths,
+.ml-weaknesses {
+  margin-top: 12px;
+  padding: 10px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.ml-strengths {
+  border-left: 3px solid #00ff00;
+}
+
+.ml-weaknesses {
+  border-left: 3px solid #ffaa00;
+}
+
+.ml-strengths strong,
+.ml-weaknesses strong {
+  color: #E10600;
+  display: block;
+  margin-bottom: 6px;
+}
+
+.ml-strengths ul,
+.ml-weaknesses ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  color: #fff;
+}
+
+.ml-strengths li,
+.ml-weaknesses li {
+  padding: 4px 0;
+  padding-left: 12px;
+  position: relative;
+}
+
+.ml-strengths li::before {
+  content: "✓";
+  position: absolute;
+  left: 0;
+  color: #00ff00;
+}
+
+.ml-weaknesses li::before {
+  content: "⚠";
+  position: absolute;
+  left: 0;
+  color: #ffaa00;
+}
+
+.ml-strategy-analysis,
+.ml-tire-management,
+.ml-top-recommendations {
+  margin-top: 16px;
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 4px;
+  border-left: 3px solid #E10600;
+  font-size: 12px;
+}
+
+.ml-strategy-analysis strong,
+.ml-tire-management strong,
+.ml-top-recommendations strong {
+  color: #E10600;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.ml-strategy-info,
+.ml-tire-info {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+  color: #B8B8B8;
+}
+
+.ml-strategy-info span,
+.ml-tire-info span {
+  padding: 4px 8px;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 4px;
+}
+
+.ml-missed-opportunities {
+  margin-top: 12px;
+}
+
+.ml-missed-opportunities strong {
+  color: #ffaa00;
+  display: block;
+  margin-bottom: 6px;
+}
+
+.ml-missed-opportunities ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  color: #fff;
+}
+
+.ml-missed-opportunities li {
+  padding: 6px 0;
+  padding-left: 16px;
+  position: relative;
+}
+
+.ml-missed-opportunities li::before {
+  content: "→";
+  position: absolute;
+  left: 0;
+  color: #ffaa00;
+}
+
+.ml-top-recommendations ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  color: #fff;
+}
+
+.ml-top-recommendations li {
+  padding: 8px 0;
+  padding-left: 16px;
+  position: relative;
+  border-bottom: 1px solid rgba(225, 6, 0, 0.2);
+}
+
+.ml-top-recommendations li:last-child {
+  border-bottom: none;
+}
+
+.ml-top-recommendations li strong {
+  color: #E10600;
+  display: inline;
 }
 
 /* Responsive Design */
