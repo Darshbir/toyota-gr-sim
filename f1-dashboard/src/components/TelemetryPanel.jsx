@@ -147,12 +147,15 @@ const TelemetryPanel = ({ selectedCar, cars = [] }) => {
                     className="speedometer-arc"
                     d="M 20 100 A 80 80 0 0 1 180 100"
                     fill="none"
-                    stroke="#4a90e2"
+                    stroke={speedPercentage > 80 ? '#E10600' : speedPercentage > 50 ? '#ffaa00' : '#4a90e2'}
                     strokeWidth="8"
                     strokeLinecap="round"
                     strokeDasharray={`${(speedPercentage / 100) * 251.2} 251.2`}
-                    transform="rotate(180 100 100)"
-                    style={{ transformOrigin: '100px 100px' }}
+                    style={{
+                      transform: 'rotate(180deg)',
+                      transformOrigin: '100px 100px',
+                      transition: 'stroke-dasharray 0.3s ease-out, stroke 0.3s ease-out'
+                    }}
                   />
                   {/* Tick marks */}
                   {[0, 50, 100, 150, 200, 250, 300, 350].map((value, index) => {
@@ -163,15 +166,27 @@ const TelemetryPanel = ({ selectedCar, cars = [] }) => {
                     const x2 = 100 + 80 * Math.cos(radian);
                     const y2 = 100 - 80 * Math.sin(radian);
                     return (
-                      <line
-                        key={index}
-                        x1={x1}
-                        y1={y1}
-                        x2={x2}
-                        y2={y2}
-                        stroke="rgba(255, 255, 255, 0.4)"
-                        strokeWidth="2"
-                      />
+                      <g key={index}>
+                        <line
+                          x1={x1}
+                          y1={y1}
+                          x2={x2}
+                          y2={y2}
+                          stroke="rgba(255, 255, 255, 0.4)"
+                          strokeWidth="2"
+                        />
+                        {/* Tick labels */}
+                        <text
+                          x={100 + 55 * Math.cos(radian)}
+                          y={100 - 55 * Math.sin(radian)}
+                          fill="rgba(255, 255, 255, 0.6)"
+                          fontSize="8"
+                          textAnchor="middle"
+                          dominantBaseline="middle"
+                        >
+                          {value}
+                        </text>
+                      </g>
                     );
                   })}
                   {/* Needle */}
@@ -185,8 +200,7 @@ const TelemetryPanel = ({ selectedCar, cars = [] }) => {
                       strokeWidth="3"
                       strokeLinecap="round"
                       style={{
-                        transformOrigin: '100px 100px',
-                        transition: 'transform 0.3s ease-out'
+                        transition: 'all 0.3s ease-out'
                       }}
                     />
                     {/* Needle center dot */}
