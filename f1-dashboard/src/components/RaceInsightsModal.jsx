@@ -160,3 +160,6 @@ const RaceInsightsModal = ({ isOpen, onClose, onReset, insights = {} }) => {
 
 export default RaceInsightsModal;
 
+
+
+
