@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Gauge, Zap, TrendingUp, ChevronDown, ChevronUp } from 'lucide-react';
-import { positionChange, drsPulse, overtakingBadge, lapCounterFlip } from '../utils/animations';
+import { Gauge, TrendingUp, ChevronDown, ChevronUp } from 'lucide-react';
+import { positionChange, overtakingBadge, lapCounterFlip } from '../utils/animations';
 import './Leaderboard.css';
 
 const Leaderboard = ({ cars = [], raceTime = 0, totalLaps = 15, onCarClick }) => {
@@ -9,7 +9,6 @@ const Leaderboard = ({ cars = [], raceTime = 0, totalLaps = 15, onCarClick }) =>
   const [prevPositions, setPrevPositions] = useState({});
   const [showAll, setShowAll] = useState(false);
   const rowRefs = useRef({});
-  const drsRefs = useRef({});
   const overtakingRefs = useRef({});
   const lapCounterRef = useRef(null);
   const prevLapRef = useRef(0);
@@ -82,19 +81,6 @@ const Leaderboard = ({ cars = [], raceTime = 0, totalLaps = 15, onCarClick }) =>
       }
     };
   }, [cars]);
-
-  // Animate DRS indicators
-  useEffect(() => {
-    sortedCars.forEach(car => {
-      if (car.drs_active && drsRefs.current[car.name]) {
-        drsPulse(drsRefs.current[car.name], {
-          duration: 1000,
-          color: '#00ff00',
-          intensity: 1
-        });
-      }
-    });
-  }, [sortedCars]);
 
   // Animate overtaking badges
   useEffect(() => {
@@ -214,7 +200,6 @@ const Leaderboard = ({ cars = [], raceTime = 0, totalLaps = 15, onCarClick }) =>
           <span className="col-gear">Pits</span>
           <span className="col-tyre">Tyre</span>
           <span className="col-temp">Temp</span>
-          <span className="col-drs">DRS</span>
         </div>
 
         <AnimatePresence>
@@ -320,19 +305,6 @@ const Leaderboard = ({ cars = [], raceTime = 0, totalLaps = 15, onCarClick }) =>
                   >
                     {Math.round(car.tire_temp || 100)}°C
                   </div>
-                </span>
-
-                <span className="col-drs">
-                  {car.drs_active ? (
-                    <div
-                      ref={(el) => { if (el) drsRefs.current[car.name] = el; }}
-                      className="drs-active"
-                    >
-                      <Zap size={14} />
-                    </div>
-                  ) : (
-                    <div className="drs-inactive">--</div>
-                  )}
                 </span>
               </motion.div>
             );

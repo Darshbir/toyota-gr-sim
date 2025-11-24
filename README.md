@@ -1,6 +1,6 @@
-# F1 Live Race Dashboard 🏎️
+# Toyota GR Live Race Dashboard 🏎️
 
-A real-time Formula 1 race simulator with WebSocket communication, featuring a beautiful React dashboard with hooks.
+A real-time Toyota GR race simulator with WebSocket communication, featuring a beautiful React dashboard with hooks.
 
 ## Features
 
@@ -16,7 +16,7 @@ A real-time Formula 1 race simulator with WebSocket communication, featuring a b
 
 ### Backend (Python)
 - **FastAPI**: Web framework with WebSocket support
-- **Simulation Engine**: Physics-based F1 race simulation
+- **Simulation Engine**: Physics-based Toyota GR race simulation
 - **Broadcasting**: Real-time state updates to all connected clients
 
 ### Frontend (React)

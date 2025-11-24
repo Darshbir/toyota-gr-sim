@@ -276,12 +276,6 @@ const TelemetryPanel = ({ selectedCar, cars = [] }) => {
         {/* Status indicators */}
         <div className="status-row">
           <div className="status-item">
-            <span className="status-label">DRS:</span>
-            <span className={`status-value ${car.drs_active ? 'active' : 'inactive'}`}>
-              {car.drs_active ? 'ACTIVE' : 'INACTIVE'}
-            </span>
-          </div>
-          <div className="status-item">
             <span className="status-label">Controller:</span>
             <span className="status-value">{car.controller_type || 'N/A'}</span>
           </div>

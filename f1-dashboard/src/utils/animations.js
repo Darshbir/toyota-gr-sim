@@ -1,8 +1,8 @@
 import anime from 'animejs';
 
 /**
- * F1 Racing-Inspired Animation Utilities
- * Collection of animejs-based animations for the F1 dashboard
+ * Toyota GR Racing-Inspired Animation Utilities
+ * Collection of animejs-based animations for the Toyota GR dashboard
  */
 
 /**
@@ -253,32 +253,6 @@ export const positionChange = (element, direction, options = {}) => {
       { value: `blur(${2 * intensity}px)`, duration: duration * 0.15 },
       { value: 'blur(0px)', duration: duration * 0.85 }
     ]
-  });
-};
-
-/**
- * DRS activation pulse animation
- */
-export const drsPulse = (element, options = {}) => {
-  const {
-    duration = 1000,
-    color = '#00ff00',
-    intensity = 1
-  } = options;
-
-  if (!element) return;
-
-  return anime({
-    targets: element,
-    scale: [1, 1.3 * intensity, 1],
-    boxShadow: [
-      `0 0 0px ${color}`,
-      `0 0 ${20 * intensity}px ${color}`,
-      `0 0 0px ${color}`
-    ],
-    duration: duration,
-    easing: 'easeInOutQuad',
-    loop: true
   });
 };
 

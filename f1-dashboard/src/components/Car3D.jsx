@@ -177,7 +177,7 @@ function Car3D({ car, isSelected, showLabel = false, trackData }) {
     const trackPos = getTrackPositionAndElevation(car.x, car.y, trackData);
 
     // Add offset to place car above the track surface (not inside it)
-    const carHeightOffset = 0.8; // Half the height of a typical F1 car
+    const carHeightOffset = 0.8; // Half the height of a typical Toyota GR car
 
     // Update target position (2D x,y -> 3D x,z with y as elevation)
     targetPosition.current.set(trackPos.x, trackPos.y + carHeightOffset, trackPos.z);
@@ -262,7 +262,7 @@ function Car3D({ car, isSelected, showLabel = false, trackData }) {
   }
 
   // Calculate scale based on model size
-  // F1 cars are ~5.5m long, so if model is in different units, scale accordingly
+  // Toyota GR cars are ~5.5m long, so if model is in different units, scale accordingly
   // Most GLTF models are in meters, so scale of 1 should work
   // If model is too small/large, adjust this value
   const scale = 1;
@@ -273,7 +273,7 @@ function Car3D({ car, isSelected, showLabel = false, trackData }) {
     const box = new THREE.Box3().setFromObject(clonedScene);
     box.expandByObject(clonedScene);
     const size = box.getSize(new THREE.Vector3());
-    // F1 car is ~5.5m long, scale model to match, then make it 2.5x bigger for better visibility
+    // Toyota GR car is ~5.5m long, scale model to match, then make it 2.5x bigger for better visibility
     const targetLength = 5.5 * 2.5; // Make cars 2.5x bigger
     const maxDimension = Math.max(Math.abs(size.x), Math.abs(size.y), Math.abs(size.z));
     console.log(`Car ${car.name} - Model dimensions:`, size, 'Max:', maxDimension, 'Calculated scale:', maxDimension > 0 ? targetLength / maxDimension : 1);

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useWebSocket } from './useWebSocket';
 
 /**
- * Custom hook for managing F1 race data from WebSocket
+ * Custom hook for managing Toyota GR race data from WebSocket
  * @param {string} wsUrl - WebSocket server URL
  * @returns {Object} - Race state and functions
  */

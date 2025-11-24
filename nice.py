@@ -1,5 +1,5 @@
-# Colab-ready 2D F1 Simulator + Live Dashboard
-# Filename: colab_f1_simulator.py
+# Colab-ready 2D Toyota GR Simulator + Live Dashboard
+# Filename: colab_toyota_gr_simulator.py
 # Run in Google Colab (or local Jupyter). This is a single-file prototype that:
 # - Loads a non-oval Grand Prix track (attempts to use fastf1; falls back to embedded Silverstone-like waypoints)
 # - Builds a spline centerline and computes curvature

@@ -36,7 +36,7 @@ function Track3D({ trackData, followCar, cars }) {
     
     // Create a flat ribbon geometry for the track using custom geometry
     const segments = 200; // Number of segments along the curve
-    const trackWidth = 15; // F1 track width in meters (12-15m is typical)
+    const trackWidth = 15; // Toyota GR track width in meters (12-15m is typical)
     
     const geometry = new THREE.BufferGeometry();
     const vertices = [];

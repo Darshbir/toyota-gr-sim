@@ -261,26 +261,6 @@
   background: rgba(0, 0, 0, 0.2);
 }
 
-.col-drs {
-  display: flex;
-  justify-content: center;
-}
-
-.drs-active {
-  color: #ff0000;
-  animation: pulse 1s infinite;
-}
-
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
-}
-
-.drs-inactive {
-  color: #666;
-  font-size: 11px;
-}
-
 .pit-alert {
   margin-top: 12px;
   padding: 12px;

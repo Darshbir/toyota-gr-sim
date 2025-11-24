@@ -282,14 +282,6 @@ const TrackView = ({ trackData, cars = [], onCarClick }) => {
     ctx.closePath();
     ctx.fill();
 
-    // DRS indicator
-    if (car.drs_active) {
-      ctx.fillStyle = '#00ff00';
-      ctx.beginPath();
-      ctx.arc(size - 2, 0, 3, 0, Math.PI * 2);
-      ctx.fill();
-    }
-
     // White outline
     ctx.strokeStyle = '#ffffff';
     ctx.lineWidth = 2;

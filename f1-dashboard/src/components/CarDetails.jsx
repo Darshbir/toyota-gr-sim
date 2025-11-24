@@ -199,12 +199,6 @@ const CarDetails = ({ car, isOpen, onClose, containerRef }) => {
                 <h3>Status</h3>
                 <div className="status-grid">
                   <div className="status-item-detailed">
-                    <span className="status-label">DRS</span>
-                    <span className={`status-badge ${car.drs_active ? 'active' : 'inactive'}`}>
-                      {car.drs_active ? 'ACTIVE' : 'INACTIVE'}
-                    </span>
-                  </div>
-                  <div className="status-item-detailed">
                     <span className="status-label">Controller</span>
                     <span className="status-badge">{car.controller_type || 'N/A'}</span>
                   </div>

@@ -1,5 +1,5 @@
 """
-WebSocket F1 Simulator Server
+WebSocket Toyota GR Simulator Server
 Real-time race simulation with WebSocket broadcasting
 """
 
@@ -63,7 +63,7 @@ def get_pitstop_time():
     Generate variable pitstop time with realistic variation.
     Normal variation: ±1 second (using normal distribution, σ=0.5)
     Bad cases: ±2 seconds (5-10% probability)
-    Based on real-world F1 data: average ~2.2s service time, but total pit lane time ~20-30s
+    Based on real-world Toyota GR data: average ~2.2s service time, but total pit lane time ~20-30s
     """
     # 5-10% chance of bad pitstop (±2 seconds)
     if random.random() < 0.075:  # 7.5% chance
@@ -388,7 +388,7 @@ class RaceSim:
         
         # Initialize tire temperature based on ambient temperature
         ambient_temp = self.weather.get('track_temp', 25.0)
-        initial_tire_temp = max(80.0, ambient_temp + 55.0)  # Start at realistic F1 tire temp (80-90°C)
+        initial_tire_temp = max(80.0, ambient_temp + 55.0)  # Start at realistic Toyota GR tire temp (80-90°C)
         
         for i in range(n):
             # Get driver data (cycling through if more cars than drivers)
@@ -399,7 +399,7 @@ class RaceSim:
                         driver_skill=driver_skill,
                         car_skill=car_skill,
                         aggression=0.3 + random.random()*0.7)
-            # F1 grid start: all cars start at same position with 2m spacing
+            # Toyota GR grid start: all cars start at same position with 2m spacing
             c.s = i * 2.0  # 2 meters between consecutive cars
             c.v = 0.0
             c.tyre = random.choice(['SOFT', 'MEDIUM', 'HARD'])
@@ -673,7 +673,7 @@ class RaceSim:
                     car.wear = 0.0  # Reset wear for new tyres
                     # Reset tire temperature to slightly above ambient (new tyres start warm)
                     ambient_temp = self.weather.get('track_temp', 25.0)
-                    car.tire_temp = max(80.0, ambient_temp + 55.0)  # New tyres start at realistic F1 temp
+                    car.tire_temp = max(80.0, ambient_temp + 55.0)  # New tyres start at realistic Toyota GR temp
                     car.position_before_pitstop = None  # Reset tracking
                     car.pitstop_lap = None  # Reset pitstop lap tracking
                 continue
@@ -978,7 +978,7 @@ class RaceSim:
     def check_for_pending_undercuts(self, car):
         """
         Check for nearby drivers when a car enters the pits and create pending undercut entries.
-        F1 Expert Logic: Only tracks strategic undercut opportunities when:
+        Toyota GR Expert Logic: Only tracks strategic undercut opportunities when:
         - Drivers are racing closely (within 5 seconds, not 10)
         - They're fighting for position (adjacent or within 2 positions)
         - Both are on similar tire compounds/wear (strategic battle)
@@ -997,7 +997,7 @@ class RaceSim:
         for idx in reversed(indices_to_remove):
             self.pending_undercuts.pop(idx)
         
-        # Check for strategic undercut opportunities (F1 expert criteria)
+        # Check for strategic undercut opportunities (Toyota GR expert criteria)
         for other_car in sorted_cars:
             if other_car == car or other_car.on_pit:
                 continue
@@ -1005,7 +1005,7 @@ class RaceSim:
             # Calculate time gap to this other car
             time_gap = other_car.total_time - car.total_time
             
-            # F1 Expert Criteria for undercut:
+            # Toyota GR Expert Criteria for undercut:
             # 1. Racing closely (within 5 seconds - tighter than before)
             # 2. Fighting for position (adjacent positions or within 2 positions)
             # 3. Same lap (not lapped)
@@ -1091,7 +1091,7 @@ class RaceSim:
             # Negative = B gained time (defended/overcut successful)
             undercut_time = gap_before - gap_after
             
-            # F1 Expert Logic: Only record undercuts with meaningful strategic impact (>1 second)
+            # Toyota GR Expert Logic: Only record undercuts with meaningful strategic impact (>1 second)
             # This ensures we only show actual strategic battles, not minor timing differences
             if abs(undercut_time) < 1.0:
                 # Not significant enough - remove from pending without storing
@@ -1115,7 +1115,7 @@ class RaceSim:
             position_change_a = pending['a_position'] - position_a
             position_change_b = pending['b_position'] - position_b
             
-            # F1 Expert Logic: Only store undercut from the strategic perspective
+            # Toyota GR Expert Logic: Only store undercut from the strategic perspective
             # If A successfully undercuts B (A gains time), show it for A as success
             # If B gets undercut (A gains time), show it for B as failure
             # We store for both but filter in get_undercut_summary to show appropriately
@@ -1166,7 +1166,7 @@ class RaceSim:
     def get_undercut_summary(self):
         """
         Get comprehensive undercut summary for all cars at end of race.
-        F1 Expert Logic: Only shows meaningful strategic undercuts:
+        Toyota GR Expert Logic: Only shows meaningful strategic undercuts:
         - Drivers were racing closely (within 5s before first pit)
         - Significant strategic impact (>1s gain/loss)
         - Shows from perspective of who gained (successful undercut) or lost (got undercut)
@@ -1524,18 +1524,18 @@ class RaceSim:
             car.pitstop_lap = None
             car.tyre = random.choice(['SOFT', 'MEDIUM', 'HARD'])
             ambient_temp = self.weather.get('track_temp', 25.0)
-            car.tire_temp = max(80.0, ambient_temp + 55.0)  # Reset to realistic F1 tire temp
+            car.tire_temp = max(80.0, ambient_temp + 55.0)  # Reset to realistic Toyota GR tire temp
             # Reset error state
             car.error_active = False
             car.error_timer = 0.0
             car.error_speed_multiplier = 1.0
-            # F1 grid start: all cars start at same position with 2m spacing
+            # Toyota GR grid start: all cars start at same position with 2m spacing
             car_index = self.cars.index(car)
             car.s = car_index * 2.0  # 2 meters between consecutive cars
 
 # -------------------- FastAPI + WebSocket Server --------------------
 
-app = FastAPI(title="F1 Simulator WebSocket Server")
+app = FastAPI(title="Toyota GR Simulator WebSocket Server")
 
 # CORS middleware for React frontend
 app.add_middleware(
@@ -1624,7 +1624,7 @@ async def simulation_loop():
 @app.get("/")
 async def root():
     return {
-        "message": "F1 Simulator WebSocket Server",
+        "message": "Toyota GR Simulator WebSocket Server",
         "websocket_endpoint": "/ws",
         "track_endpoint": "/api/track"
     }

@@ -9,16 +9,13 @@ const RaceStats = ({ cars = [], raceTime = 0 }) => {
     fastestLap: null,
     fastestLapTime: Infinity,
     totalOvertakes: 0,
-    totalPitStops: 0,
-    activeDRS: 0
+    totalPitStops: 0
   });
   const [prevPositions, setPrevPositions] = useState({});
   const overtakesRef = useRef(null);
   const pitStopsRef = useRef(null);
-  const drsRef = useRef(null);
   const prevOvertakesRef = useRef(0);
   const prevPitStopsRef = useRef(0);
-  const prevDRSRef = useRef(0);
 
   useEffect(() => {
     if (!cars || cars.length === 0) return;
@@ -61,9 +58,6 @@ const RaceStats = ({ cars = [], raceTime = 0 }) => {
     cars.forEach(car => {
       totalPitStops += car.pitstop_count || 0;
     });
-
-    // Count active DRS
-    const activeDRS = cars.filter(c => c.drs_active).length;
     
     setStats(prev => {
       const newTotalOvertakes = prev.totalOvertakes + newOvertakes;
@@ -78,18 +72,13 @@ const RaceStats = ({ cars = [], raceTime = 0 }) => {
           animatedCounter(pitStopsRef.current, totalPitStops, { duration: 600, decimals: 0 });
           prevPitStopsRef.current = totalPitStops;
         }
-        if (drsRef.current && activeDRS !== prevDRSRef.current) {
-          animatedCounter(drsRef.current, activeDRS, { duration: 600, decimals: 0 });
-          prevDRSRef.current = activeDRS;
-        }
       }, 0);
       
       return {
         fastestLap: fastest.car || prev.fastestLap,
         fastestLapTime: fastest.car ? fastest.time : prev.fastestLapTime,
         totalOvertakes: newTotalOvertakes,
-        totalPitStops: totalPitStops,
-        activeDRS: activeDRS
+        totalPitStops: totalPitStops
       };
     });
 
@@ -149,19 +138,6 @@ const RaceStats = ({ cars = [], raceTime = 0 }) => {
             <div className="stat-label">Pit Stops</div>
             <div className="stat-value" ref={pitStopsRef}>{stats.totalPitStops}</div>
             <div className="stat-subvalue">Total</div>
-          </div>
-        </motion.div>
-
-        <motion.div
-          className="stat-card"
-          whileHover={{ scale: 1.05 }}
-          transition={{ duration: 0.2 }}
-        >
-          <Zap className="stat-icon" size={24} />
-          <div className="stat-content">
-            <div className="stat-label">DRS Zones</div>
-            <div className="stat-value" ref={drsRef}>{stats.activeDRS}</div>
-            <div className="stat-subvalue">Active</div>
           </div>
         </motion.div>
       </div>

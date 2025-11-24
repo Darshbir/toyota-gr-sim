@@ -100,7 +100,7 @@ const RaceInsights = ({ raceFinished, wsUrl }) => {
                 <div className="model-info">
                   <div className="model-badge">
                     <Brain size={16} />
-                    <span>{insights.insights?.model_info?.model_name || 'F1 Strategy AI'}</span>
+                    <span>{insights.insights?.model_info?.model_name || 'Toyota GR Strategy AI'}</span>
                   </div>
                   <div className="model-metadata">
                     <span>Engine: {insights.insights?.model_info?.inference_engine || 'Gemini'}</span>

@@ -205,7 +205,6 @@ const DriverInsightsPage = ({ driverName, insights, raceData, onBack }) => {
           <div className="race-craft-scores">
             <ScoreBar label="Overtaking Efficiency" value={raceCraft.overtaking_efficiency || 0} />
             <ScoreBar label="Defensive Driving" value={raceCraft.defensive_driving_score || 0} />
-            <ScoreBar label="DRS Usage" value={raceCraft.drs_usage_score || 0} />
           </div>
 
           {raceCraft.position_gain_opportunities && raceCraft.position_gain_opportunities.length > 0 && (

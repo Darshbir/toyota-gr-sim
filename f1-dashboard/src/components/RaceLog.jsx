@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { TrendingUp, Zap, Wrench, Award } from 'lucide-react';
+import { TrendingUp, Wrench, Award } from 'lucide-react';
 import { speedStreak } from '../utils/animations';
 import './RaceLog.css';
 
@@ -8,7 +8,6 @@ const RaceLog = ({ cars = [], raceTime = 0, raceFinished = false, undercutSummar
   const [events, setEvents] = useState([]);
   const [prevState, setPrevState] = useState({
     positions: {},
-    drsState: {},
     pitState: {},
     pitstopCounts: {}
   });
@@ -19,13 +18,11 @@ const RaceLog = ({ cars = [], raceTime = 0, raceFinished = false, undercutSummar
     if (!cars || cars.length === 0) return;
 
     const currentPositions = {};
-    const currentDRS = {};
     const currentPit = {};
     const currentPitstopCounts = {};
 
     cars.forEach(car => {
       currentPositions[car.name] = car.position;
-      currentDRS[car.name] = car.drs_active || false;
       currentPit[car.name] = car.on_pit || false;
       currentPitstopCounts[car.name] = car.pitstop_count || 0;
     });
@@ -41,18 +38,6 @@ const RaceLog = ({ cars = [], raceTime = 0, raceFinished = false, undercutSummar
           type: 'overtake',
           time: raceTime,
           message: `${car.name} overtook P${oldPos} → P${newPos}`,
-          car: car.name
-        });
-      }
-    });
-
-    // Detect DRS activations
-    cars.forEach(car => {
-      if (prevState.drsState[car.name] === false && car.drs_active === true) {
-        newEvents.push({
-          type: 'drs',
-          time: raceTime,
-          message: `${car.name} activated DRS`,
           car: car.name
         });
       }
@@ -107,7 +92,6 @@ const RaceLog = ({ cars = [], raceTime = 0, raceFinished = false, undercutSummar
 
     setPrevState({
       positions: currentPositions,
-      drsState: currentDRS,
       pitState: currentPit,
       pitstopCounts: currentPitstopCounts
     });
@@ -158,8 +142,6 @@ const RaceLog = ({ cars = [], raceTime = 0, raceFinished = false, undercutSummar
     switch (type) {
       case 'overtake':
         return <TrendingUp size={14} />;
-      case 'drs':
-        return <Zap size={14} />;
       case 'pitstop':
         return <Wrench size={14} />;
       case 'error':
@@ -173,8 +155,6 @@ const RaceLog = ({ cars = [], raceTime = 0, raceFinished = false, undercutSummar
     switch (type) {
       case 'overtake':
         return '#E10600';
-      case 'drs':
-        return '#FFD700';
       case 'pitstop':
         return '#FFA500';
       case 'error':

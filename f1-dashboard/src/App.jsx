@@ -282,7 +282,7 @@ function App() {
     <div className="app" ref={appRef}>
       <header className="app-header" ref={headerRef}>
         <div className="header-content">
-          <h1>FORMULA 1 LIVE RACE</h1>
+          <h1>TOYOTA GR LIVE RACE</h1>
           <p className="subtitle">Real-time Race Simulation & Telemetry</p>
         </div>
       </header>
@@ -423,7 +423,7 @@ function App() {
       />
 
       <footer className="app-footer">
-        <p>FORMULA 1 RACE SIMULATION | Real-time Telemetry & Data | Powered by WebSocket Technology</p>
+        <p>TOYOTA GR RACE SIMULATION | Real-time Telemetry & Data | Powered by WebSocket Technology</p>
       </footer>
     </div>
   );
