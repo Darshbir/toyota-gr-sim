@@ -1,0 +1,8 @@
+Model Information:
+* title:	Toyota GR Supra GT GT300
+* source:	https://sketchfab.com/3d-models/toyota-gr-supra-gt-gt300-58efbe2b2e144d8e8edfcc0c64e55f88
+* author:	kadir kandemir (https://sketchfab.com/metallicarts)
+
+Model License:
+* license type:	SKETCHFAB Standard (https://sketchfab.com/licenses)
+* requirements:	Under basic restrictions, use worldwide, on all types of media, commercially or not, and in all types of derivative works
